@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Listing Guide — The Coolidge Group</title>
+<meta name="description" content="The Coolidge Group Listing Guide for sellers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/flipbook.css">
+</head>
+<body>
+<header class="bar">
+  <a href="../index.html" class="wm-slot">
+    <img class="logo-img" src="../brand/wordmark-onlight.png" alt="The Coolidge Group"
+         onload="this.style.display='block';this.nextElementSibling.style.display='none'">
+    <span class="wordmark">The&nbsp;<b>Coolidge</b>&nbsp;Group</span>
+  </a>
+  <div class="center">
+    <span class="guide-title">Listing Guide</span>
+  </div>
+  <a href="../index.html" class="backlink">&larr; <span>All guides</span></a>
+</header>
+
+<main>
+  <div id="stage">
+    <img id="base" alt="Listing Guide page">
+    <div class="edge l" aria-hidden="true">&#8249;</div>
+    <div class="edge r" aria-hidden="true">&#8250;</div>
+  </div>
+</main>
+
+<footer class="bar">
+  <div class="controls">
+    <button class="nav" id="prev" aria-label="Previous page">&#8249;</button>
+    <span id="pagelabel">1 / 19</span>
+    <button class="nav" id="next" aria-label="Next page">&#8250;</button>
+  </div>
+  <div class="ctarow">
+    <button class="cta primary" onclick="__cta('book', BOOK_URL)">
+      <svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 9h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+      Book a consultation</button>
+    <a class="cta" href="Coolidge_Group_Listing_Presentation.pdf" download onclick="if(window.track)track('cta_click',{label:'download',guide:'Listing Guide'})">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+      Download PDF</a>
+    <button class="cta" onclick="__share()">
+      <svg viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14"/></svg>
+      Share</button>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Link copied to clipboard</div>
+
+<script>
+  /* Booking link — change this to your Calendly/booking URL any time (or leave as email). */
+  var BOOK_URL = "mailto:greg@thecoolidgegroup.com?subject=Listing%20Consultation%20Request";
+</script>
+<script src="../assets/analytics.js"></script>
+<script>
+  window.FLIPBOOK = { name: "Listing Guide", pages: 19, dir: "pages", ext: "jpg", pad: 2 };
+</script>
+<script src="../assets/flipbook.js"></script>
+</body>
+</html>
