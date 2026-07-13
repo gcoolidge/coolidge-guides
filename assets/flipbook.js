@@ -1,4 +1,4 @@
-/* The Coolidge Group — self-contained page-flip engine with scroll-to-read zoom (no dependencies) */
+/* The Coolidge Group — self-contained page-flip engine with scroll-to-read zoom + in-zoom paging */
 (function () {
   var cfg = window.FLIPBOOK;
   if (!cfg) return;
@@ -66,7 +66,12 @@
   stage.appendChild(zbtn);
 
   document.addEventListener("keydown", function (e) {
-    if (zv.classList.contains("show")) { if (e.key === "Escape") closeZoom(); return; }
+    if (zv.classList.contains("show")) {
+      if (e.key === "Escape") closeZoom();
+      else if (e.key === "ArrowRight") zoomNav(1);
+      else if (e.key === "ArrowLeft") zoomNav(-1);
+      return;
+    }
     if (e.key === "ArrowRight") window.__next();
     else if (e.key === "ArrowLeft") window.__prev();
   });
@@ -93,31 +98,48 @@
     sx = null;
   }, { passive: true });
 
-  /* ================= READ / ZOOM VIEWER (scrollable) ================= */
+  /* ================= READ / ZOOM VIEWER (scrollable, with paging) ================= */
   var zv = document.createElement("div");
   zv.className = "zoomview";
   zv.innerHTML =
     '<button class="zclose" aria-label="Close">&times;</button>' +
-    '<div class="zhint">Scroll to read &middot; use + / &minus; to resize</div>' +
+    '<div class="zpage"></div>' +
+    '<div class="zhint">Scroll to read &middot; &#8249; &#8250; flip pages &middot; + / &minus; resize</div>' +
     '<div class="zc"><img class="zimg" alt="Guide page (enlarged)"></div>' +
-    '<div class="zctrl"><button data-z="out" aria-label="Smaller">&minus;</button>' +
-    '<button data-z="in" aria-label="Larger">+</button></div>';
+    '<div class="zctrl">' +
+      '<button data-zn="prev" class="znav" aria-label="Previous page">&#8249;</button>' +
+      '<button data-z="out" aria-label="Smaller">&minus;</button>' +
+      '<button data-z="in" aria-label="Larger">+</button>' +
+      '<button data-zn="next" class="znav" aria-label="Next page">&#8250;</button>' +
+    '</div>';
   document.body.appendChild(zv);
   var zc = zv.querySelector(".zc"), zimg = zv.querySelector(".zimg");
   var zlevel = 1;
 
   function baseW() {
     var w = window.innerWidth;
-    return w <= 640 ? w : Math.min(w * 0.6, 760); /* default fits width -> no sideways scroll */
+    return w <= 640 ? w : Math.min(w * 0.6, 760);
   }
   function applyW() { zimg.style.width = Math.round(baseW() * zlevel) + "px"; }
   function setLevel(v) { zlevel = Math.max(0.6, Math.min(4, v)); applyW(); }
 
+  function updateZnav() {
+    var p = zv.querySelector('[data-zn="prev"]'), n = zv.querySelector('[data-zn="next"]');
+    if (p) p.disabled = cur === 0;
+    if (n) n.disabled = cur === total - 1;
+    var zp = zv.querySelector(".zpage"); if (zp) zp.textContent = (cur + 1) + " / " + total;
+  }
+  function loadZoomPage() { zimg.src = src(cur); zv.scrollTop = 0; zv.scrollLeft = 0; updateZnav(); }
+
+  function zoomNav(d) {
+    var t = cur + d; if (t < 0 || t >= total) return;
+    cur = t; render(); loadZoomPage();
+    if (window.track) window.track("zoom_flip", { guide: cfg.name, page: cur + 1 });
+  }
+
   function openZoom() {
-    zimg.src = base.src;
-    zlevel = 1; applyW();
+    zlevel = 1; applyW(); loadZoomPage();
     zv.classList.add("show");
-    zv.scrollTop = 0; zv.scrollLeft = 0;
     if (window.track) window.track("zoom_open", { guide: cfg.name, page: cur + 1 });
   }
   function closeZoom() { zv.classList.remove("show"); }
@@ -129,6 +151,12 @@
     b.addEventListener("click", function (e) {
       e.stopPropagation();
       setLevel(zlevel + (b.getAttribute("data-z") === "in" ? 0.35 : -0.35));
+    });
+  });
+  zv.querySelectorAll("[data-zn]").forEach(function (b) {
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      zoomNav(b.getAttribute("data-zn") === "next" ? 1 : -1);
     });
   });
   window.addEventListener("resize", function () { if (zv.classList.contains("show")) applyW(); });

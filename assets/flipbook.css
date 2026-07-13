@@ -131,3 +131,8 @@ footer.bar{
 .zctrl button{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.18);
   border:1px solid rgba(255,255,255,.36);color:#fff;font-size:26px;cursor:pointer;line-height:1}
 .zctrl button:hover{background:rgba(255,255,255,.28)}
+.zctrl button:disabled{opacity:.32;cursor:default}
+.zctrl .znav{background:rgba(168,25,46,.85);border-color:rgba(168,25,46,.9)}
+.zctrl .znav:hover:not(:disabled){background:#8f1427}
+.zpage{position:fixed;top:16px;left:16px;z-index:82;color:#fff;font-size:12px;letter-spacing:.1em;
+  background:rgba(0,0,0,.4);padding:7px 12px;border-radius:20px;font-variant-numeric:tabular-nums}
