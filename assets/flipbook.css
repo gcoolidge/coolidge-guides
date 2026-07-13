@@ -117,19 +117,17 @@ footer.bar{
 .gate-sub:hover{background:#8f1427}.gate-sub:disabled{opacity:.6;cursor:default}
 .gate-note{margin-top:14px;font-size:11px;line-height:1.5;color:#7a7f86;text-align:center}
 
-/* fullscreen zoom viewer */
-.zoomview{position:fixed;inset:0;background:rgba(18,20,24,.95);display:none;z-index:80;touch-action:none}
+/* fullscreen zoom / read viewer — natural scroll */
+.zoomview{position:fixed;inset:0;background:rgba(18,20,24,.96);display:none;z-index:80;overflow:auto;-webkit-overflow-scrolling:touch}
 .zoomview.show{display:block}
-.zc{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:grab}
-.zc:active{cursor:grabbing}
-.zimg{max-width:96vw;max-height:94vh;transform-origin:center center;will-change:transform;
-  user-select:none;-webkit-user-drag:none;box-shadow:0 10px 50px rgba(0,0,0,.5)}
-.zclose{position:absolute;top:14px;right:18px;z-index:82;background:none;border:none;color:#fff;font-size:36px;
-  line-height:1;cursor:pointer;opacity:.85}
+.zc{min-height:100%;padding:20px 0 100px;text-align:center}
+.zimg{display:block;margin:0 auto;box-shadow:0 10px 50px rgba(0,0,0,.5);user-select:none;-webkit-user-drag:none}
+.zclose{position:fixed;top:12px;right:16px;z-index:82;background:rgba(0,0,0,.4);border:none;color:#fff;
+  font-size:24px;width:44px;height:44px;border-radius:50%;line-height:1;cursor:pointer;opacity:.92}
 .zclose:hover{opacity:1}
-.zhint{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:82;color:rgba(255,255,255,.7);
-  font-size:12px;letter-spacing:.08em}
-.zctrl{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:82;display:flex;gap:12px}
-.zctrl button{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.14);
-  border:1px solid rgba(255,255,255,.32);color:#fff;font-size:24px;cursor:pointer;line-height:1}
-.zctrl button:hover{background:rgba(255,255,255,.24)}
+.zhint{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:82;color:#fff;
+  font-size:12px;letter-spacing:.05em;background:rgba(0,0,0,.4);padding:7px 14px;border-radius:20px}
+.zctrl{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:82;display:flex;gap:12px}
+.zctrl button{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.36);color:#fff;font-size:26px;cursor:pointer;line-height:1}
+.zctrl button:hover{background:rgba(255,255,255,.28)}

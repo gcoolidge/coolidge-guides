@@ -1,4 +1,4 @@
-/* The Coolidge Group — self-contained page-flip engine with zoom (no dependencies) */
+/* The Coolidge Group — self-contained page-flip engine with scroll-to-read zoom (no dependencies) */
 (function () {
   var cfg = window.FLIPBOOK;
   if (!cfg) return;
@@ -10,8 +10,8 @@
   var label = document.getElementById("pagelabel");
   var prevBtn = document.getElementById("prev");
   var nextBtn = document.getElementById("next");
-
-  if (window.matchMedia && window.matchMedia("(max-width:640px)").matches) stage.classList.add("mobile");
+  var isMobile = window.matchMedia && window.matchMedia("(max-width:640px)").matches;
+  if (isMobile) stage.classList.add("mobile");
 
   function src(i) { var s = "" + (i + 1); while (s.length < pad) s = "0" + s; return dir + "/page-" + s + "." + ext; }
   function preload(i) { if (i >= 0 && i < total) { var im = new Image(); im.src = src(i); } }
@@ -54,26 +54,24 @@
   nextBtn.addEventListener("click", function (e) { e.stopPropagation(); window.__next(); });
   prevBtn.addEventListener("click", function (e) { e.stopPropagation(); window.__prev(); });
 
-  /* clickable edge arrows */
   var el = stage.querySelector(".edge.l"), er = stage.querySelector(".edge.r");
   if (el) el.addEventListener("click", function (e) { e.stopPropagation(); window.__prev(); });
   if (er) er.addEventListener("click", function (e) { e.stopPropagation(); window.__next(); });
 
-  /* zoom button on the page */
+  /* zoom / read button on the page */
   var zbtn = document.createElement("button");
   zbtn.className = "zoombtn"; zbtn.setAttribute("aria-label", "Zoom in to read");
   zbtn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg>';
   zbtn.addEventListener("click", function (e) { e.stopPropagation(); openZoom(); });
   stage.appendChild(zbtn);
 
-  /* ---- keyboard ---- */
   document.addEventListener("keydown", function (e) {
     if (zv.classList.contains("show")) { if (e.key === "Escape") closeZoom(); return; }
     if (e.key === "ArrowRight") window.__next();
     else if (e.key === "ArrowLeft") window.__prev();
   });
 
-  /* ---- tap page to zoom (suppress after a swipe) ---- */
+  /* tap page to open read view (suppressed right after a swipe) */
   var suppressClick = false;
   stage.addEventListener("click", function (e) {
     if (e.target.closest(".edge") || e.target.closest(".zoombtn")) return;
@@ -81,7 +79,6 @@
     openZoom();
   });
 
-  /* ---- swipe to navigate ---- */
   var sx = null, sy = null, moved = false;
   stage.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; sy = e.touches[0].clientY; moved = false; }, { passive: true });
   stage.addEventListener("touchmove", function (e) {
@@ -96,53 +93,45 @@
     sx = null;
   }, { passive: true });
 
-  /* ================= ZOOM VIEWER ================= */
+  /* ================= READ / ZOOM VIEWER (scrollable) ================= */
   var zv = document.createElement("div");
   zv.className = "zoomview";
   zv.innerHTML =
     '<button class="zclose" aria-label="Close">&times;</button>' +
-    '<div class="zhint">Pinch or scroll to zoom &middot; drag to move</div>' +
-    '<div class="zc"><img class="zimg" alt="Guide page (zoomed)"></div>' +
-    '<div class="zctrl"><button data-z="out" aria-label="Zoom out">&minus;</button>' +
-    '<button data-z="in" aria-label="Zoom in">+</button></div>';
+    '<div class="zhint">Scroll to read &middot; use + / &minus; to resize</div>' +
+    '<div class="zc"><img class="zimg" alt="Guide page (enlarged)"></div>' +
+    '<div class="zctrl"><button data-z="out" aria-label="Smaller">&minus;</button>' +
+    '<button data-z="in" aria-label="Larger">+</button></div>';
   document.body.appendChild(zv);
   var zc = zv.querySelector(".zc"), zimg = zv.querySelector(".zimg");
-  var scale = 1, tx = 0, ty = 0;
-  function apply() { zimg.style.transform = "translate(" + tx + "px," + ty + "px) scale(" + scale + ")"; }
-  function setScale(s) { scale = Math.max(1, Math.min(6, s)); if (scale === 1) { tx = 0; ty = 0; } apply(); }
+  var zlevel = 1;
+
+  function baseW() {
+    var w = window.innerWidth;
+    return w <= 640 ? w : Math.min(w * 0.6, 760); /* default fits width -> no sideways scroll */
+  }
+  function applyW() { zimg.style.width = Math.round(baseW() * zlevel) + "px"; }
+  function setLevel(v) { zlevel = Math.max(0.6, Math.min(4, v)); applyW(); }
+
   function openZoom() {
-    zimg.src = base.src; setScale(1.8); zv.classList.add("show");
+    zimg.src = base.src;
+    zlevel = 1; applyW();
+    zv.classList.add("show");
+    zv.scrollTop = 0; zv.scrollLeft = 0;
     if (window.track) window.track("zoom_open", { guide: cfg.name, page: cur + 1 });
   }
   function closeZoom() { zv.classList.remove("show"); }
   window.__zoom = openZoom;
+
   zv.querySelector(".zclose").addEventListener("click", closeZoom);
-  zv.addEventListener("click", function (e) { if (e.target === zv) closeZoom(); });
+  zv.addEventListener("click", function (e) { if (e.target === zv || e.target === zc) closeZoom(); });
   zv.querySelectorAll("[data-z]").forEach(function (b) {
-    b.addEventListener("click", function () { setScale(scale + (b.getAttribute("data-z") === "in" ? 0.5 : -0.5)); });
+    b.addEventListener("click", function (e) {
+      e.stopPropagation();
+      setLevel(zlevel + (b.getAttribute("data-z") === "in" ? 0.35 : -0.35));
+    });
   });
-  zc.addEventListener("wheel", function (e) { e.preventDefault(); setScale(scale - e.deltaY * 0.0025); }, { passive: false });
-
-  /* mouse pan */
-  var pd = false, px, py;
-  zc.addEventListener("mousedown", function (e) { pd = true; px = e.clientX; py = e.clientY; });
-  window.addEventListener("mousemove", function (e) { if (!pd) return; tx += e.clientX - px; ty += e.clientY - py; px = e.clientX; py = e.clientY; apply(); });
-  window.addEventListener("mouseup", function () { pd = false; });
-
-  /* touch pinch + pan */
-  function dist(t) { var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.sqrt(dx * dx + dy * dy); }
-  var startDist = 0, startScale = 1, pan0 = null;
-  zc.addEventListener("touchstart", function (e) {
-    if (e.touches.length === 2) { startDist = dist(e.touches); startScale = scale; }
-    else if (e.touches.length === 1) { pan0 = { x: e.touches[0].clientX - tx, y: e.touches[0].clientY - ty }; }
-  }, { passive: false });
-  zc.addEventListener("touchmove", function (e) {
-    if (e.touches.length === 2) { e.preventDefault(); setScale(startScale * dist(e.touches) / startDist); }
-    else if (e.touches.length === 1 && scale > 1) { e.preventDefault(); tx = e.touches[0].clientX - pan0.x; ty = e.touches[0].clientY - pan0.y; apply(); }
-  }, { passive: false });
-  /* double-tap to reset */
-  var lastTap = 0;
-  zc.addEventListener("touchend", function () { var n = Date.now(); if (n - lastTap < 300) setScale(scale > 1.9 ? 1 : 2.6); lastTap = n; });
+  window.addEventListener("resize", function () { if (zv.classList.contains("show")) applyW(); });
 
   if (window.track) window.track("guide_open", { guide: cfg.name });
   render();
